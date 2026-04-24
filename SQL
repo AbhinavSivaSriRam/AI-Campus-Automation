@@ -1,0 +1,93 @@
+# SQL
+DROP DATABASE IF EXISTS campus_ai;
+CREATE DATABASE campus_ai;
+USE campus_ai;
+
+-- 1. Users Table
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    roll_number VARCHAR(20) UNIQUE,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    role ENUM('student', 'teacher') DEFAULT 'student',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Assignments Table
+CREATE TABLE assignments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    status ENUM('Pending','Completed') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. Class Materials
+CREATE TABLE materials (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL, 
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. Leave Requests
+CREATE TABLE leave_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    reason TEXT NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 5. Exams Table
+CREATE TABLE exams (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. Results Table (Updated with Tab Alert tracking)
+CREATE TABLE results (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    exam_id INT NOT NULL,
+    score INT DEFAULT 0,
+    warnings INT DEFAULT 0,
+    noise_alerts INT DEFAULT 0, 
+    face_alerts INT DEFAULT 0,  
+    tab_alerts INT DEFAULT 0, -- Added for specific browser tracking
+    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_attempt (user_id, exam_id)
+);
+
+-- 7. Timetable Table
+CREATE TABLE timetable (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    day ENUM('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),
+    subject VARCHAR(50),
+    time_slot VARCHAR(50),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- ==========================================
+-- DEMO DATA
+-- ==========================================
+
+INSERT INTO users (roll_number, email, password, role) 
+VALUES ('T-001', 'teacher@srm.edu.in', 'admin123', 'teacher');
+
+INSERT INTO users (roll_number, email, password, role) 
+VALUES ('RA2311026010524', 'student@srm.edu.in', 'user123', 'student');
+
+INSERT INTO timetable (user_id, day, subject, time_slot) VALUES
+(2, 'Monday', 'AI & ML', '9:00 - 10:00 AM'),
+(2, 'Tuesday', 'Python Programming', '11:00 - 12:00 PM'),
+(2, 'Wednesday', 'Data Structures', '1:00 - 2:00 PM'),
+(2, 'Thursday', 'Computer Networks', '10:00 - 11:00 AM'),
+(2, 'Friday', 'Operating Systems', '2:00 - 3:00 PM');
