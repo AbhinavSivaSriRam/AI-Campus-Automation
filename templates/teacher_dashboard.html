@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Command Center | Campus AI</title>
+    <style>
+        :root {
+            --primary: #00ffb3;
+            --secondary: #00c6ff;
+            --bg: #020617;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --danger: #ff4444;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+        }
+
+        /* --- Sidebar Navigation --- */
+        .sidebar {
+            width: 260px;
+            background: #0f172a;
+            height: 100vh;
+            padding: 25px;
+            position: fixed;
+            border-right: 1px solid #1e293b;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .status-indicator {
+            font-size: 0.85rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        nav a {
+            display: block;
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 12px 0;
+            transition: 0.3s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        nav a:hover {
+            color: var(--primary);
+            padding-left: 10px;
+        }
+
+        /* --- Main Content Area --- */
+        .main-content {
+            margin-left: 310px;
+            padding: 40px;
+            width: calc(100% - 310px);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 179, 0.1);
+            margin-bottom: 35px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* --- Table Styling --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            text-align: left;
+            color: var(--primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #334155;
+            padding: 15px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #1e293b;
+            font-size: 0.95rem;
+        }
+
+        /* --- Badges & Buttons --- */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-warning {
+            background: rgba(255, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .badge-success {
+            background: rgba(0, 255, 179, 0.15);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            color: #020617;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 255, 179, 0.3);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            background: #020617;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 8px;
+            margin: 10px 0;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .alert-count {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .evidence-box {
+            width: 50px;
+            height: 40px;
+            background: #1e293b;
+            border: 1px solid var(--primary);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2>SRM Campus AI</h2>
+        <div class="status-indicator">
+            <span class="status-dot"></span> SECURE SERVER ONLINE
+        </div>
+
+        <nav>
+            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">ACCOUNT</p>
+            <p style="margin-top: 0;">{{ email }}</p>
+            <br>
+            <a href="/teacher_dashboard">🏠 Dashboard Home</a>
+            <a href="#integrity-monitor">📊 Integrity Monitor</a>
+            <a href="#leave-requests">📩 Leave Requests</a>
+            <a href="#study-material">📚 Upload Materials</a>
+            <a href="/logout" style="margin-top: 40px; color: var(--danger);">🚪 Logout Session</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <h1>👨‍🏫 Teacher Command Center</h1>
+
+        <!-- 1. EXAM CONTROL HUB -->
+        <div class="card">
+            <h2>🚀 AI Examination Control</h2>
+            <p style="color: #94a3b8;">Launch a new assessment. Gemini 1.5 Flash will generate questions and lock AI
+                assistants for students.</p>
+            <form action="/create_exam" method="POST" style="display: flex; gap: 15px; align-items: center;">
+                <input type="text" name="exam_title" placeholder="Topic (e.g. Data Structures in Python)" required
+                    style="flex: 3;">
+                <button type="submit" class="btn" style="flex: 1;">Generate & Launch</button>
+            </form>
+        </div>
+
+        <!-- 2. REAL-TIME INTEGRITY MONITOR -->
+        <div class="card" id="integrity-monitor">
+            <h2>📊 Student Integrity Monitor (Real-Time)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Roll</th>
+                        <th>📸 Evidence</th>
+                        <th>Status</th>
+                        <th>Warnings</th>
+                        <th>🎙️ Noise</th>
+                        <th>👁️ Gaze/Pose</th>
+                        <th>💻 Tab</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td><strong>{{ s[0] }}</strong></td>
+                        <td>
+                            <div class="evidence-box">VERIFIED</div>
+                        </td>
+                        <td>
+                            <span class="badge {{ 'badge-success' if s[2] < 3 else 'badge-warning' }}">
+                                {{ '✅ ROOM CLEAR' if s[2] < 3 else '❌ BREACHED' }} </span>
+                        </td>
+                        <td>
+                            <span class="badge {{ 'badge-warning' if s[2] > 0 else 'badge-success' }}">
+                                {{ s[2] }} Warnings
+                            </span>
+                        </td>
+                        <td class="alert-count">{{ s[3] }} Alerts</td>
+                        <td class="alert-count">{{ s[4] }} Alerts</td>
+                        <td class="alert-count">{{ s[5] }} Alerts</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. LEAVE MANAGEMENT -->
+        <div class="card" id="leave-requests">
+            <h2>📩 Pending Leave Requests</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Reason</th>
+                        <th>Current Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in leaves %}
+                    <tr>
+                        <td>{{ l[1] }}</td>
+                        <td>{{ l[2] }}</td>
+                        <td>
+                            <span
+                                style="color: {{ 'var(--primary)' if l[3] == 'Approved' else 'var(--danger)' if l[3] == 'Rejected' else 'white' }}">
+                                {{ l[3] }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if l[3] == 'Pending' %}
+                            <a href="/approve_leave/{{ l[0] }}/Approved"
+                                style="color: var(--primary); text-decoration: none; font-weight: bold; margin-right: 15px;">Approve</a>
+                            <a href="/approve_leave/{{ l[0] }}/Rejected"
+                                style="color: var(--danger); text-decoration: none; font-weight: bold;">Reject</a>
+                            {% else %}
+                            <span style="color: #334155;">Archived</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. MATERIAL UPLOAD -->
+        <div class="card" id="study-material">
+            <h2>📚 Post-Exam Study Material</h2>
+            <form action="/upload_material" method="POST">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <input type="text" name="title" placeholder="Title (e.g. Week 4 Python Notes)" required>
+                    <input type="text" name="link" placeholder="Cloud / Drive Link" required>
+                </div>
+                <button type="submit" class="btn" style="margin-top: 15px; width: 100%;">Sync with Student
+                    Portals</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

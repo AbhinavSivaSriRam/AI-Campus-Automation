@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Secure Terminal | Campus AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #020617;
+            color: white;
+            overflow: hidden;
+        }
+
+        #setup-overlay {
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #video-container {
+            position: relative;
+            border: 4px solid #00ffb3;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px;
+            background: #000;
+            width: 400px;
+            height: 300px;
+            box-shadow: 0 0 40px rgba(0, 255, 179, 0.4);
+        }
+
+        video {
+            transform: scaleX(-1);
+        }
+
+        .exam-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 80vh;
+            overflow-y: auto;
+        }
+
+        .question-card {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid #00c6ff;
+        }
+
+        .option {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .option:hover {
+            background: #1e293b;
+        }
+
+        .submit-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #00ffb3, #00c6ff);
+            color: #020617;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: 0.3s;
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #proctor-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 65, 108, 0.1);
+            border: 1px solid #ff416c;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .alert-box {
+            color: #ff416c;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 1.2rem;
+            min-height: 25px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="setup-overlay">
+        <h2 id="setup-title" style="font-size: 2rem; margin-bottom: 5px;">Step 1: Identity Verification</h2>
+        <p id="setup-desc" style="color: #94a3b8; max-width: 500px; margin-bottom: 10px;">Hardware check active. Screen
+            sharing is mandatory to detect remote assistance.</p>
+        <div id="video-container">
+            <video id="preview-video" width="400" height="300" autoplay muted playsinline></video>
+        </div>
+        <div id="setup-actions">
+            <button id="btn-photo" onclick="takeSnapshot()" class="submit-btn">📸 Verify Identity</button>
+            <button id="btn-scan" onclick="startRoomScan()" class="submit-btn"
+                style="display: none; background: #00c6ff;">🔄 Start Room Scan</button>
+        </div>
+        <div id="scan-timer" style="font-size: 4rem; color: #00ffb3; margin-top: 10px; font-weight: 900;"></div>
+        <div id="setup-alert" class="alert-box"></div>
+    </div>
+
+    <div id="proctor-status">
+        🛡️ AI PROCTORING ACTIVE
+        <div id="warning-msg" style="color: #ff416c; font-weight: bold; margin-top: 5px;"></div>
+        <div style="margin-top: 5px; color: #94a3b8;">User: RA2311026010524</div>
+    </div>
+
+    <div id="exam-ui" class="exam-container" style="display: none;">
+        <h2 style="border-bottom: 2px solid #1e293b; padding-bottom: 15px;">📝 Assessment: {{ topic }}</h2>
+        <form action="/submit_exam" method="POST">
+            {% for q in questions %}
+            <div class="question-card">
+                <p><strong>Q{{ loop.index }}: {{ q.q }}</strong></p>
+                <label class="option"><input type="radio" name="q{{ loop.index }}" value="a" required> {{ q.a }}</label>
+                <label class="option"><input type="radio" name="q{{ loop.index }}" value="b"> {{ q.b }}</label>
+                <label class="option"><input type="radio" name="q{{ loop.index }}" value="c"> {{ q.c }}</label>
+                <label class="option"><input type="radio" name="q{{ loop.index }}" value="d"> {{ q.d }}</label>
+            </div>
+            {% endfor %}
+            <button type="submit" class="submit-btn" style="width: 100%;">SUBMIT FINAL RESPONSES</button>
+        </form>
+    </div>
+
+    <script>
+        const video = document.getElementById('preview-video');
+        const setupAlert = document.getElementById('setup-alert');
+        let localWarningCount = 0;
+        let isProcessing = false;
+        let isScanning = false;
+        let lastBrightness = 0;
+        const warningLimit = 3;
+
+        async function init() {
+            try {
+                const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+                ]);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => video.play();
+                startAudioMonitoring(stream);
+            } catch (err) {
+                alert("Camera Access Denied. Check permissions.");
+            }
+        }
+
+        async function takeSnapshot() {
+            const btn = document.getElementById('btn-photo');
+            btn.disabled = true;
+            const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.35 }));
+            if (detections.length !== 1) {
+                setupAlert.innerText = "❌ FAILED: Exactly ONE person required.";
+                btn.disabled = false;
+                return;
+            }
+            document.getElementById('setup-title').innerText = "Step 2: 360° Environmental Scan";
+            document.getElementById('btn-photo').style.display = "none";
+            document.getElementById('btn-scan').style.display = "inline-block";
+            setupAlert.innerText = "";
+        }
+
+        async function startRoomScan() {
+            isScanning = true;
+            let timeLeft = 10;
+            const timerEl = document.getElementById('scan-timer');
+            const scanBtn = document.getElementById('btn-scan');
+            scanBtn.disabled = true;
+
+            const scanLoop = setInterval(async () => {
+                const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.28 }));
+                if (detections.length > 1) {
+                    clearInterval(scanLoop);
+                    alert("🚨 SECURITY BREACH: Unauthorized person detected. Restarting Scan.");
+                    location.reload();
+                    return;
+                }
+                timeLeft -= 1;
+                timerEl.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(scanLoop);
+                    isScanning = false;
+                    enterExam();
+                }
+            }, 750);
+        }
+
+        async function enterExam() {
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                screenStream.getVideoTracks()[0].onended = () => {
+                    alert("Screen share stopped. Exam Voided.");
+                    window.location.href = "/dashboard";
+                };
+                document.getElementById('setup-overlay').style.display = "none";
+                document.getElementById('exam-ui').style.display = "block";
+                startActiveProctoring();
+            } catch (err) {
+                alert("CRITICAL: Full screen share required.");
+            }
+        }
+
+        function startActiveProctoring() {
+            setInterval(async () => {
+                if (isProcessing) return;
+
+                const allFaces = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.33 }));
+                if (allFaces.length > 1) {
+                    processViolation("MULTIPLE PEOPLE DETECTED (COLLABORATION)");
+                    return;
+                }
+
+                const detection = await faceapi.detectSingleFace(video, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.33 })).withFaceLandmarks();
+                if (detection) {
+                    const l = detection.landmarks;
+                    const noseX = l.getNose()[0].x;
+                    const eyeWidth = l.getRightEye()[0].x - l.getLeftEye()[3].x;
+                    const yawRatio = (noseX - l.getLeftEye()[3].x) / eyeWidth;
+
+                    // Side-Gaze detection
+                    if (yawRatio < 0.33 || yawRatio > 0.67) {
+                        processViolation("SIDE-GAZE DETECTED");
+                        return;
+                    }
+
+                    // Bounding Box Geometry check (Detects if a phone/hand blocks face)
+                    const box = detection.detection.box;
+                    const aspect = box.width / box.height;
+                    if (aspect < 0.58 || aspect > 0.92) {
+                        processViolation("PARTIAL FACE OCCLUSION (EXTERNAL OBJECT DETECTED)");
+                        return;
+                    }
+
+                    analyzeLuminanceDifferential();
+                } else {
+                    processViolation("FACE NOT DETECTED");
+                }
+            }, 2500);
+        }
+
+        // SMART LUMINANCE: Detects phone glow spikes while ignoring static bright walls
+        function analyzeLuminanceDifferential() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 50; canvas.height = 50;
+            ctx.drawImage(video, 0, 0, 50, 50);
+            const data = ctx.getImageData(0, 0, 50, 50).data;
+            let total = 0;
+            for (let i = 0; i < data.length; i += 4) total += (data[i] + data[i + 1] + data[i + 2]) / 3;
+            let avg = total / 2500;
+
+            if (lastBrightness > 0 && (avg - lastBrightness) > 45) {
+                processViolation("SUDDEN LIGHT SPIKE (DEVICE DETECTED)");
+            }
+            if (avg > 248) {
+                processViolation("EXTREME LIGHTING ANOMALY");
+            }
+            lastBrightness = avg;
+        }
+
+        async function processViolation(reason) {
+            if (isProcessing) return;
+            isProcessing = true;
+            localWarningCount++;
+            document.getElementById('warning-msg').innerText = `⚠️ ${reason}`;
+            await fetch('/log_warning', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: reason })
+            });
+
+            if (localWarningCount >= warningLimit) {
+                alert("CRITICAL SECURITY BREACH: TERMINATED.");
+                window.location.href = "/dashboard";
+            } else {
+                alert(`🚨 ALERT: ${reason}\nWarnings: ${localWarningCount}/${warningLimit}`);
+                setTimeout(() => { isProcessing = false; }, 2000);
+            }
+        }
+
+        function startAudioMonitoring(stream) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const mic = audioContext.createMediaStreamSource(stream);
+            mic.connect(analyser);
+            analyser.fftSize = 512;
+            const dataArr = new Uint8Array(analyser.frequencyBinCount);
+            function checkAudio() {
+                analyser.getByteFrequencyData(dataArr);
+                let vol = dataArr.reduce((a, b) => a + b) / dataArr.length;
+                if (vol > 75 && !isProcessing && !isScanning) {
+                    processViolation("ACOUSTIC INTERFERENCE: SPEECH DETECTED");
+                }
+                requestAnimationFrame(checkAudio);
+            }
+            checkAudio();
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) processViolation("TAB SWITCH DETECTED");
+        });
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>

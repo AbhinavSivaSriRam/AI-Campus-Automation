@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Join Campus AI | Student Registration</title>
+    <style>
+        :root {
+            --primary: #00ffb3;
+            --secondary: #00c6ff;
+            --bg: #020617;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: white;
+            overflow: hidden;
+        }
+
+        .box {
+            width: 400px;
+            padding: 40px;
+            border-radius: 24px;
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 40px rgba(0, 255, 179, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        /* Animated border glow */
+        .box::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, var(--primary), transparent, var(--secondary));
+            border-radius: 26px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            background: #0f172a;
+            color: white;
+            box-sizing: border-box;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #1e293b;
+            box-shadow: 0 0 15px rgba(0, 255, 179, 0.2);
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--primary);
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: #020617;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.4s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 255, 179, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .footer-links {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+        <h2>Initiate Access</h2>
+        <p class="subtitle">Enter the SRM Unified Student Intelligence Hub</p>
+
+        <form action="/register" method="POST" id="regForm">
+            <div class="input-group">
+                <label>Institutional ID</label>
+                <input type="text" name="roll_number" id="roll" placeholder="RA2311026010524" required>
+            </div>
+
+            <div class="input-group">
+                <label>Campus Email</label>
+                <input type="email" name="email" placeholder="name@srmist.edu.in" required>
+            </div>
+
+            <div class="input-group">
+                <label>Security Key</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <span class="toggle-icon" onclick="togglePassword()">👁️</span>
+                </div>
+            </div>
+
+            <button type="submit">Establish Student Profile</button>
+        </form>
+
+        <div class="footer-links">
+            <span style="color: #64748b;">Existing User?</span>
+            <a href="/login">Return to Terminal</a>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const x = document.getElementById("password");
+            x.type = x.type === "password" ? "text" : "password";
+        }
+
+        // Basic Client-Side Validation for your Demo
+        document.getElementById('regForm').onsubmit = function (e) {
+            const roll = document.getElementById('roll').value;
+            if (!roll.startsWith('RA')) {
+                alert("Please enter a valid SRM Roll Number (Starting with RA).");
+                e.preventDefault();
+            }
+        };
+    </script>
+
+</body>
+
+</html>
