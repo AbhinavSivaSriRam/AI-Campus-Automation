@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Timetable | Campus AI</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #020617, #0f172a);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h2 {
+            background: linear-gradient(to right, #00c6ff, #00ffb3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 179, 0.1);
+        }
+
+        th {
+            background: linear-gradient(to right, #00c6ff, #00ffb3);
+            color: #020617;
+            padding: 18px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 1rem;
+        }
+
+        tr:hover {
+            background: rgba(0, 255, 179, 0.05);
+        }
+
+        .back-link {
+            margin-top: 30px;
+            display: inline-block;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            color: #00ffb3;
+            transform: translateX(-5px);
+        }
+
+        .empty-msg {
+            padding: 40px;
+            color: #64748b;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>📅 Academic Schedule</h2>
+        <p style="color: #94a3b8; margin-bottom: 30px;">Your personalized timetable at SRM IST.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Subject</th>
+                    <th>Time Slot</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td><strong>{{ row[0] }}</strong></td>
+                    <td>{{ row[1] }}</td>
+                    <td style="color: #00c6ff;">{{ row[2] }}</td>
+                </tr>
+                {% endfor %}
+
+                {% if not data %}
+                <tr>
+                    <td colspan="3" class="empty-msg">No classes scheduled yet. Enjoy your free time!</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <a href="/dashboard" class="back-link">⬅ Back to Student Dashboard</a>
+    </div>
+</body>
+
+</html>

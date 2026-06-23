@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Assignments | Campus AI</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #020617, #0f172a);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h2 {
+            background: linear-gradient(to right, #00c6ff, #00ffb3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+        }
+
+        form {
+            background: rgba(30, 41, 59, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 255, 179, 0.1);
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #00ffb3;
+        }
+
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #00c6ff, #00ffb3);
+            color: #020617;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 179, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        th {
+            background: linear-gradient(to right, #00c6ff, #00ffb3);
+            color: #020617;
+            padding: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .pending {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+        .completed {
+            background: rgba(0, 255, 179, 0.1);
+            color: #00ffb3;
+            border: 1px solid #00ffb3;
+        }
+
+        .actions a {
+            margin: 0 8px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+        .actions a:hover {
+            transform: scale(1.3);
+        }
+
+        .back {
+            margin-top: 30px;
+            display: inline-block;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2> Assignment Tracker</h2>
+
+        <form method="POST" action="/assignment">
+            <input type="text" name="title" placeholder="What needs to be done?" required>
+            <button type="submit">Add Task</button>
+        </form>
+
+        <h3>Your Workload</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row[2] }}</td>
+                    <td>
+                        <span class="status-badge {{ 'completed' if row[3] == 'Completed' else 'pending' }}">
+                            {{ row[3] }}
+                        </span>
+                    </td>
+                    <td class="actions">
+                        {% if row[3] == 'Pending' %}
+                        <a href="/complete_assignment/{{ row[0] }}" title="Mark Complete">✅</a>
+                        {% endif %}
+                        <a href="/delete_assignment/{{ row[0] }}" title="Delete Task">❌</a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                {% if not data %}
+                <tr>
+                    <td colspan="3" style="color: #64748b; padding: 40px;">No assignments yet. Stay productive!</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <a class="back" href="/dashboard">⬅ Back to Dashboard</a>
+    </div>
+</body>
+
+</html>
